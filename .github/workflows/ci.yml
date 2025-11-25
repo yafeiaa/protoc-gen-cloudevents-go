@@ -75,7 +75,7 @@ jobs:
       run: make build
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: protoc-gen-cloudevents
         path: bin/protoc-gen-cloudevents
@@ -116,7 +116,7 @@ jobs:
       run: make bench | tee benchmark.txt
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: benchmark-results
         path: benchmark.txt
