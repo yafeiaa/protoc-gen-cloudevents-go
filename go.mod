@@ -1,16 +1,19 @@
 module github.com/yafeiaa/protoc-gen-cloudevents-go
 
-go 1.21
+go 1.23
+
+toolchain go1.24.6
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats.go v1.31.0
 	github.com/stretchr/testify v1.8.4
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.36.10
 )
 
 require (
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
