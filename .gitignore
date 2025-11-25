@@ -29,9 +29,10 @@ go.work
 .DS_Store
 Thumbs.db
 
-# Generated files
-*.pb.go
+# Generated files (exclude example event files, but keep proto definition)
 *_events.pb.go
+# Allow proto/cloudevents/*.pb.go (core proto definitions)
+!proto/cloudevents/*.pb.go
 
 # Local development
 local/
