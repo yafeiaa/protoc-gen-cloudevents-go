@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="protoc-gen-cloudevents-go - Automatically generate type-safe CloudEvents publish/subscribe code from Protobuf definitions">
+    <meta name="keywords" content="protobuf, cloudevents, go, event-driven, nats, code-generator">
+    <meta name="author" content="yafeiaa">
+    <title>protoc-gen-cloudevents-go - Type-Safe Event-Driven Architecture</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #00ADD8;
+            --secondary-color: #5DC9E2;
+            --dark-bg: #0D1117;
+            --card-bg: #161B22;
+            --text-primary: #E6EDF3;
+            --text-secondary: #8B949E;
+            --border-color: #30363D;
+            --success-color: #3FB950;
+            --warning-color: #D29922;
+            --code-bg: #0D1117;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .lang-toggle:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(0, 173, 216, 0.1) 0%, rgba(93, 201, 226, 0.05) 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 800px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .badges img {
+            height: 20px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 173, 216, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Code Section */
+        .code-example {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .code-example pre {
+            margin: 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #C9D1D9;
+        }
+
+        .code-example .keyword { color: #FF7B72; }
+        .code-example .string { color: #A5D6FF; }
+        .code-example .comment { color: #8B949E; font-style: italic; }
+        .code-example .function { color: #D2A8FF; }
+
+        /* Section Headers */
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+        }
+
+        /* Quick Start */
+        .quick-start {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .quick-start ol {
+            margin-left: 20px;
+        }
+
+        .quick-start li {
+            margin: 20px 0;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .quick-start code {
+            background: var(--code-bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: var(--primary-color);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Language specific */
+        [lang="zh"] { display: none; }
+        body.lang-zh [lang="en"] { display: none; }
+        body.lang-zh [lang="zh"] { display: block; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .cta-buttons { flex-direction: column; width: 100%; }
+            .btn { width: 100%; text-align: center; }
+            .features { grid-template-columns: 1fr; }
+            .lang-toggle { top: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Toggle -->
+    <div class="lang-toggle" onclick="toggleLanguage()">
+        <span lang="en">🌏 中文</span>
+        <span lang="zh">🌏 English</span>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>protoc-gen-cloudevents-go</h1>
+        
+        <p class="subtitle" lang="en">
+            Automatically generate type-safe CloudEvents publish/subscribe code from Protobuf definitions
+        </p>
+        <p class="subtitle" lang="zh">
+            从 Protobuf 定义自动生成类型安全的 CloudEvents 发布/订阅代码
+        </p>
+
+        <div class="badges">
+            <img src="https://github.com/yafeiaa/protoc-gen-cloudevents-go/workflows/CI/badge.svg" alt="CI Status">
+            <img src="https://goreportcard.com/badge/github.com/yafeiaa/protoc-gen-cloudevents-go" alt="Go Report">
+            <img src="https://godoc.org/github.com/yafeiaa/protoc-gen-cloudevents-go?status.svg" alt="GoDoc">
+            <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+        </div>
+
+        <div class="cta-buttons">
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go" class="btn btn-primary" lang="en">
+                🚀 Get Started
+            </a>
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go" class="btn btn-primary" lang="zh">
+                🚀 快速开始
+            </a>
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go/blob/main/README.md" class="btn btn-secondary" lang="en">
+                📖 Documentation
+            </a>
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go/blob/main/README_CN.md" class="btn btn-secondary" lang="zh">
+                📖 查看文档
+            </a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <div class="container">
+        <h2 class="section-title" lang="en">✨ Features</h2>
+        <h2 class="section-title" lang="zh">✨ 核心特性</h2>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3 lang="en">Zero Boilerplate</h3>
+                <h3 lang="zh">零样板代码</h3>
+                <p lang="en">Auto-generate publish/subscribe functions from Protobuf definitions. Focus on business logic, not infrastructure.</p>
+                <p lang="zh">从 Protobuf 定义自动生成发布/订阅函数，专注业务逻辑而非基础设施代码。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 lang="en">Type Safety</h3>
+                <h3 lang="zh">类型安全</h3>
+                <p lang="en">Compile-time checking prevents runtime errors. Say goodbye to string-based event names and interface{} payloads.</p>
+                <p lang="zh">编译时检查避免运行时错误，告别基于字符串的事件名和 interface{} 载荷。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">☁️</div>
+                <h3 lang="en">CloudEvents Standard</h3>
+                <h3 lang="zh">CloudEvents 标准</h3>
+                <p lang="en">Fully compatible with CloudEvents specification. Interoperable with any CloudEvents-compliant system.</p>
+                <p lang="zh">完全兼容 CloudEvents 规范，可与任何符合 CloudEvents 的系统互操作。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📡</div>
+                <h3 lang="en">Multiple Patterns</h3>
+                <h3 lang="zh">多种模式</h3>
+                <p lang="en">Broadcast mode for fan-out and handler group mode for load balancing. Choose the right pattern for your use case.</p>
+                <p lang="zh">广播模式用于扇出，处理器组模式用于负载均衡，根据场景选择合适模式。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔌</div>
+                <h3 lang="en">Transport Agnostic</h3>
+                <h3 lang="zh">传输层无关</h3>
+                <p lang="en">Built-in support for NATS and in-memory transport. Easily extensible to Kafka, RabbitMQ, HTTP, and more.</p>
+                <p lang="zh">内置 NATS 和内存传输支持，可轻松扩展至 Kafka、RabbitMQ、HTTP 等。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3 lang="en">Single Source of Truth</h3>
+                <h3 lang="zh">单一事实来源</h3>
+                <p lang="en">Proto files serve as both code and documentation. Keep event contracts in sync across teams.</p>
+                <p lang="zh">Proto 文件同时作为代码和文档，保持团队间事件契约同步。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Example -->
+    <div class="container">
+        <h2 class="section-title" lang="en">⚡ Quick Example</h2>
+        <h2 class="section-title" lang="zh">⚡ 快速示例</h2>
+        
+        <p class="section-subtitle" lang="en">Define events in Proto, get type-safe code instantly</p>
+        <p class="section-subtitle" lang="zh">在 Proto 中定义事件，立即获得类型安全的代码</p>
+
+        <div class="code-example">
+            <pre lang="en"><span class="comment">// 1. Define your event in events.proto</span>
+<span class="keyword">message</span> UserRegisteredPayload {
+  <span class="keyword">option</span> (cloudevents.event_meta) = {
+    event_type: <span class="string">"myapp.user.registered"</span>
+    description: <span class="string">"User registered successfully"</span>
+  };
+  
+  <span class="keyword">string</span> user_id = <span class="string">1</span>;
+  <span class="keyword">string</span> email = <span class="string">2</span>;
+}
+
+<span class="comment">// 2. Publish events (generated code)</span>
+events.<span class="function">PublishUserRegistered</span>(ctx, bus,
+    &events.UserRegisteredPayload{
+        UserId: <span class="string">"user-123"</span>,
+        Email:  <span class="string">"user@example.com"</span>,
+    },
+    events.<span class="function">WithSource</span>(<span class="string">"myapp/api-server"</span>),
+)
+
+<span class="comment">// 3. Subscribe to events (generated code)</span>
+events.<span class="function">SubscribeUserRegistered</span>(ctx, bus,
+    <span class="keyword">func</span>(ctx context.Context, payload *events.UserRegisteredPayload) <span class="keyword">error</span> {
+        log.<span class="function">Printf</span>(<span class="string">"User registered: %s"</span>, payload.Email)
+        <span class="keyword">return</span> <span class="keyword">nil</span>
+    })
+</pre>
+            <pre lang="zh"><span class="comment">// 1. 在 events.proto 中定义事件</span>
+<span class="keyword">message</span> UserRegisteredPayload {
+  <span class="keyword">option</span> (cloudevents.event_meta) = {
+    event_type: <span class="string">"myapp.user.registered"</span>
+    description: <span class="string">"用户注册成功"</span>
+  };
+  
+  <span class="keyword">string</span> user_id = <span class="string">1</span>;
+  <span class="keyword">string</span> email = <span class="string">2</span>;
+}
+
+<span class="comment">// 2. 发布事件（生成的代码）</span>
+events.<span class="function">PublishUserRegistered</span>(ctx, bus,
+    &events.UserRegisteredPayload{
+        UserId: <span class="string">"user-123"</span>,
+        Email:  <span class="string">"user@example.com"</span>,
+    },
+    events.<span class="function">WithSource</span>(<span class="string">"myapp/api-server"</span>),
+)
+
+<span class="comment">// 3. 订阅事件（生成的代码）</span>
+events.<span class="function">SubscribeUserRegistered</span>(ctx, bus,
+    <span class="keyword">func</span>(ctx context.Context, payload *events.UserRegisteredPayload) <span class="keyword">error</span> {
+        log.<span class="function">Printf</span>(<span class="string">"用户注册: %s"</span>, payload.Email)
+        <span class="keyword">return</span> <span class="keyword">nil</span>
+    })
+</pre>
+        </div>
+    </div>
+
+    <!-- Installation -->
+    <div class="container">
+        <h2 class="section-title" lang="en">📦 Installation</h2>
+        <h2 class="section-title" lang="zh">📦 安装</h2>
+
+        <div class="quick-start">
+            <ol lang="en">
+                <li>
+                    <strong>Install the generator:</strong><br>
+                    <code>go install github.com/yafeiaa/protoc-gen-cloudevents-go/cmd/protoc-gen-cloudevents@latest</code>
+                </li>
+                <li>
+                    <strong>Define your events in Proto files</strong>
+                </li>
+                <li>
+                    <strong>Generate code:</strong><br>
+                    <code>protoc --cloudevents_out=. events.proto</code>
+                </li>
+                <li>
+                    <strong>Start publishing and subscribing!</strong>
+                </li>
+            </ol>
+            
+            <ol lang="zh">
+                <li>
+                    <strong>安装生成器：</strong><br>
+                    <code>go install github.com/yafeiaa/protoc-gen-cloudevents-go/cmd/protoc-gen-cloudevents@latest</code>
+                </li>
+                <li>
+                    <strong>在 Proto 文件中定义事件</strong>
+                </li>
+                <li>
+                    <strong>生成代码：</strong><br>
+                    <code>protoc --cloudevents_out=. events.proto</code>
+                </li>
+                <li>
+                    <strong>开始发布和订阅！</strong>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="container">
+        <h2 class="section-title" lang="en">💼 Use Cases</h2>
+        <h2 class="section-title" lang="zh">💼 使用场景</h2>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🏗️</div>
+                <h3 lang="en">Microservices Communication</h3>
+                <h3 lang="zh">微服务通信</h3>
+                <p lang="en">Decouple services with event-driven architecture. Services communicate through events without direct dependencies.</p>
+                <p lang="zh">通过事件驱动架构解耦服务，服务间通过事件通信而无需直接依赖。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 lang="en">Event Sourcing</h3>
+                <h3 lang="zh">事件溯源</h3>
+                <p lang="en">Store and replay events to rebuild application state. Perfect for audit logs and temporal queries.</p>
+                <p lang="zh">存储和重放事件以重建应用状态，适用于审计日志和时序查询。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3 lang="en">Data Synchronization</h3>
+                <h3 lang="zh">数据同步</h3>
+                <p lang="en">Propagate data changes across systems in real-time. Keep caches, search indices, and analytics up-to-date.</p>
+                <p lang="zh">实时跨系统传播数据变更，保持缓存、搜索索引和分析数据最新。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3 lang="en">Async Task Processing</h3>
+                <h3 lang="zh">异步任务处理</h3>
+                <p lang="en">Offload heavy tasks to background workers. Email sending, image processing, report generation, etc.</p>
+                <p lang="zh">将繁重任务转移到后台处理器，如发送邮件、图片处理、报告生成等。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3 lang="en">Real-time Notifications</h3>
+                <h3 lang="zh">实时通知</h3>
+                <p lang="en">Push notifications to users instantly when events occur. WebSocket, SSE, or mobile push.</p>
+                <p lang="zh">事件发生时即时向用户推送通知，支持 WebSocket、SSE 或移动推送。</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3 lang="en">Monitoring & Analytics</h3>
+                <h3 lang="zh">监控与分析</h3>
+                <p lang="en">Collect and analyze events for metrics, dashboards, and business intelligence.</p>
+                <p lang="zh">收集和分析事件用于指标监控、仪表盘和商业智能。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p lang="en">
+            Built with ❤️ by <a href="https://github.com/yafeiaa" target="_blank">yafeiaa</a> |
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go" target="_blank">GitHub</a> |
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go/blob/main/LICENSE" target="_blank">MIT License</a>
+        </p>
+        <p lang="zh">
+            由 <a href="https://github.com/yafeiaa" target="_blank">yafeiaa</a> 用 ❤️ 构建 |
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go" target="_blank">GitHub</a> |
+            <a href="https://github.com/yafeiaa/protoc-gen-cloudevents-go/blob/main/LICENSE" target="_blank">MIT 许可证</a>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9rem;">
+            <span lang="en">Powered by CloudEvents • Protobuf • Go</span>
+            <span lang="zh">基于 CloudEvents • Protobuf • Go</span>
+        </p>
+    </footer>
+
+    <script>
+        function toggleLanguage() {
+            document.body.classList.toggle('lang-zh');
+        }
+
+        // Auto detect browser language
+        if (navigator.language.startsWith('zh')) {
+            document.body.classList.add('lang-zh');
+        }
+    </script>
+</body>
+</html>

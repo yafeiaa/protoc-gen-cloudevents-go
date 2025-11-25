@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package myapp.events;
+
+option go_package = "github.com/yafeiaa/protoc-gen-cloudevents/examples/basic/events;events";
+
+import "google/protobuf/descriptor.proto";
+import "cloudevents/event_meta.proto";
+
+// UserRegisteredPayload represents a user registration event
+message UserRegisteredPayload {
+  option (cloudevents.event_meta) = {
+    event_type: "myapp.user.registered"
+    description: "User registered successfully"
+  };
+  
+  string user_id = 1;
+  string email = 2;
+  string username = 3;
+  int64 registered_at = 4;
+}
+
+// OrderCreatedPayload represents an order creation event
+message OrderCreatedPayload {
+  option (cloudevents.event_meta) = {
+    event_type: "myapp.order.created"
+    description: "Order created successfully"
+  };
+  
+  string order_id = 1;
+  string user_id = 2;
+  double amount = 3;
+  string currency = 4;
+  repeated string items = 5;
+}

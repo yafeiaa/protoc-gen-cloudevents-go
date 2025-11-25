@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package cloudevents;
+
+option go_package = "github.com/yafeiaa/protoc-gen-cloudevents/proto/cloudevents;cloudevents";
+
+import "google/protobuf/descriptor.proto";
+
+// EventMeta defines the metadata for an event, used through message options
+message EventMeta {
+  // event_type is the unique event identifier (globally unique, used for routing, identification, and CloudEvents type)
+  // Format: {domain}.{resource}.{action}
+  // Examples: "myapp.user.registered"
+  //           "myapp.order.created"
+  string event_type = 1;
+  
+  // description is the event description (optional, used for documentation and comments)
+  string description = 2;
+}
+
+// event_meta extension option, applied at the message level
+extend google.protobuf.MessageOptions {
+  EventMeta event_meta = 50001;
+}
