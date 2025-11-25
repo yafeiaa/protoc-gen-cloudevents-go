@@ -4,6 +4,8 @@ package memory
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -20,6 +22,26 @@ type MemoryBus struct {
 	groupIndex map[string]map[string]int            // subject -> group -> current index
 }
 
+// matchSubject checks if a subject matches a pattern with wildcards
+// Supports "*" wildcard matching (e.g., "app.*.created" matches "app.user.created")
+func matchSubject(pattern, subject string) bool {
+	// If pattern doesn't contain wildcards, use exact match
+	if !strings.Contains(pattern, "*") {
+		return pattern == subject
+	}
+
+	// Convert NATS-style wildcards to filepath-style for filepath.Match
+	// NATS uses * for single-level matching and > for multi-level
+	filePattern := strings.ReplaceAll(pattern, "*", "*")
+	
+	// Use filepath.Match which supports * wildcards
+	matched, err := filepath.Match(filePattern, subject)
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
 // NewMemoryBus creates a new in-memory event bus
 func NewMemoryBus() *MemoryBus {
 	return &MemoryBus{
@@ -31,30 +53,42 @@ func NewMemoryBus() *MemoryBus {
 
 // Publish publishes an event to the bus
 func (b *MemoryBus) Publish(ctx context.Context, subject string, event *cloudevents.Event) error {
+	// Validate inputs
+	if subject == "" {
+		return fmt.Errorf("subject is required")
+	}
+	if event == nil {
+		return fmt.Errorf("event is required")
+	}
+
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	// Broadcast to all broadcast-mode subscribers
-	for _, handler := range b.handlers[subject] {
-		if err := handler(ctx, event); err != nil {
-			return fmt.Errorf("handler error: %w", err)
+	// Broadcast to all broadcast-mode subscribers with matching subjects
+	for pattern, handlers := range b.handlers {
+		if matchSubject(pattern, subject) {
+			for _, handler := range handlers {
+				// Handle errors but continue processing other handlers
+				_ = handler(ctx, event)
+			}
 		}
 	}
 
-	// Handler group mode (load balancing)
-	if groupHandlers, ok := b.groups[subject]; ok {
-		for group, handlers := range groupHandlers {
-			if len(handlers) == 0 {
-				continue
-			}
+	// Handler group mode (load balancing) with wildcard support
+	for pattern, groupHandlers := range b.groups {
+		if matchSubject(pattern, subject) {
+			for group, handlers := range groupHandlers {
+				if len(handlers) == 0 {
+					continue
+				}
 
-			// Round-robin handler selection
-			index := b.groupIndex[subject][group] % len(handlers)
-			handler := handlers[index]
-			b.groupIndex[subject][group]++
+				// Round-robin handler selection
+				index := b.groupIndex[pattern][group] % len(handlers)
+				handler := handlers[index]
+				b.groupIndex[pattern][group]++
 
-			if err := handler(ctx, event); err != nil {
-				return fmt.Errorf("group handler error: %w", err)
+				// Handle errors but continue processing other handlers
+				_ = handler(ctx, event)
 			}
 		}
 	}
@@ -64,6 +98,13 @@ func (b *MemoryBus) Publish(ctx context.Context, subject string, event *cloudeve
 
 // Subscribe subscribes to events (broadcast mode)
 func (b *MemoryBus) Subscribe(ctx context.Context, subject string, handler EventHandler) error {
+	if subject == "" {
+		return fmt.Errorf("subject is required")
+	}
+	if handler == nil {
+		return fmt.Errorf("handler is required")
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -73,6 +114,16 @@ func (b *MemoryBus) Subscribe(ctx context.Context, subject string, handler Event
 
 // SubscribeWithHandlerGroup subscribes to events (handler group mode)
 func (b *MemoryBus) SubscribeWithHandlerGroup(ctx context.Context, subject, group string, handler EventHandler) error {
+	if subject == "" {
+		return fmt.Errorf("subject is required")
+	}
+	if group == "" {
+		return fmt.Errorf("group is required")
+	}
+	if handler == nil {
+		return fmt.Errorf("handler is required")
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
 

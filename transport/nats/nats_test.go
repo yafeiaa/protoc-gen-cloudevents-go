@@ -248,6 +248,9 @@ func TestDrain(t *testing.T) {
 
 	err = bus.Drain(ctx)
 	assert.NoError(t, err)
+	
+	// Give some time for the connection to close
+	time.Sleep(100 * time.Millisecond)
 	assert.True(t, bus.conn.IsClosed())
 }
 

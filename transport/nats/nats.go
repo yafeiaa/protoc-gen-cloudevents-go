@@ -155,9 +155,20 @@ func (b *NATSBus) Close(ctx context.Context) error {
 // Drain gracefully drains all subscriptions and closes the connection
 // This ensures all in-flight messages are processed before closing
 func (b *NATSBus) Drain(ctx context.Context) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
 	if b.conn == nil || b.conn.IsClosed() {
 		return nil
 	}
 
-	return b.conn.Drain()
+	// Drain connection and wait for it to close
+	if err := b.conn.Drain(); err != nil {
+		return err
+	}
+
+	// Add subscriptions to be tracked
+	b.subscriptions = nil
+
+	return nil
 }

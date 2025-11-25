@@ -15,8 +15,6 @@ import (
 func TestNewMemoryBus(t *testing.T) {
 	bus := NewMemoryBus()
 	assert.NotNil(t, bus)
-	assert.NotNil(t, bus.subscribers)
-	assert.NotNil(t, bus.mu)
 }
 
 // TestPublish_SimpleEvent 测试发布简单事件
@@ -245,7 +243,7 @@ func TestConcurrentPublishSubscribe(t *testing.T) {
 	// 订阅者计数
 	var receivedCount int64
 	var mu sync.Mutex
-	received := make(chan *cloudevents.Event, numPublishers*eventsPerPublisher)
+	received := make(chan *cloudevents.Event, numPublishers*eventsPerPublisher*numSubscribers)
 
 	// 启动多个订阅者
 	for i := 0; i < numSubscribers; i++ {
@@ -298,7 +296,6 @@ func TestHandlerError_DoesNotAffectOthers(t *testing.T) {
 	bus := NewMemoryBus()
 	ctx := context.Background()
 
-	received1 := make(chan *cloudevents.Event, 1)
 	received2 := make(chan *cloudevents.Event, 1)
 
 	// 错误处理器
